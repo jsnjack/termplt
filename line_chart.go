@@ -1,13 +1,15 @@
 package main
 
+// LineChart represents a line chart
 type LineChart struct {
 	canvas Canvas
 	width  int
 	height int
-	lines  []Line
+	lines  []line
 }
 
-type Line struct {
+// line represents a line in the LineChart
+type line struct {
 	x     []float64
 	y     []float64
 	color string
@@ -15,7 +17,7 @@ type Line struct {
 
 // Add a line to the chart
 func (l *LineChart) AddLine(x []float64, y []float64, color string) {
-	line := Line{x: x, y: y, color: color}
+	line := line{x: x, y: y, color: color}
 	l.lines = append(l.lines, line)
 }
 
