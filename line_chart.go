@@ -1,4 +1,4 @@
-package main
+package termplt
 
 import (
 	"fmt"
@@ -14,6 +14,10 @@ type LineChart struct {
 	width  int
 	height int
 	lines  []line
+	showX  bool
+	xLabel string
+	showY  bool
+	yLabel string
 }
 
 // line represents a line in the LineChart
@@ -33,6 +37,16 @@ func (l *LineChart) AddLine(x []float64, y []float64, color string) {
 func (l *LineChart) SetSize(width, height int) {
 	l.width = width
 	l.height = height
+}
+
+func (l *LineChart) SetXLabel(label string) {
+	l.xLabel = label
+	l.showX = true
+}
+
+func (l *LineChart) SetYLabel(label string) {
+	l.yLabel = label
+	l.showY = true
 }
 
 func (l *LineChart) findMaxX() float64 {
@@ -112,7 +126,7 @@ func (l *LineChart) generateYLabels(numLines int, yPostfix string) []string {
 }
 
 func (l *LineChart) generateXLabels(xPostfix string) []string {
-	xPostfix = stripColor(xPostfix)
+	xPostfix = StripColor(xPostfix)
 	maxX := l.findMaxX()
 	minX := l.findMinX()
 	labelCount := l.width/2 + 1
@@ -190,7 +204,7 @@ func isXLabelsFull(xLabels []string, minLabelLen int) bool {
 }
 
 // String returns the string representation of the line chart
-func (l LineChart) String() string {
+func (l LineChart) string() string {
 	l.canvas.Clear()
 
 	// Resample data to fit the canvas
@@ -216,20 +230,29 @@ func (l LineChart) String() string {
 	return l.canvas.String()
 }
 
-// StringWithAxis returns the string representation of the line chart with axis labels
-func (l *LineChart) StringWithAxis(xPostfix, yPostfix string) string {
-	data := l.String()
-	splitted := strings.Split(data, "\n")
-	splitted = splitted[:len(splitted)-1] // Remove the last empty line
+// String returns the string representation of the line chart with axis labels
+func (l *LineChart) String() string {
+	data := l.string()
 	newData := ""
-	yLabels := l.generateYLabels(len(splitted), yPostfix)
-	for idx, line := range splitted {
-		newData += fmt.Sprintf("%s⎹%s\n", yLabels[idx], line)
+	paddingYLen := 0
+	if l.showY {
+		splitted := strings.Split(data, "\n")
+		splitted = splitted[:len(splitted)-1] // Remove the last empty line
+		yLabels := l.generateYLabels(len(splitted), l.yLabel)
+		for idx, line := range splitted {
+			newData += fmt.Sprintf("%s⎹%s\n", yLabels[idx], line)
+		}
+		paddingYLen = len([]rune(StripColor(yLabels[0])))
+
 	}
-	// Add the X axis
-	paddingLen := len([]rune(stripColor(yLabels[0])))
-	xLabels := l.generateXLabels(xPostfix)
-	newData += strings.Repeat(" ", paddingLen+1) + strings.Join(xLabels, "") + "\n"
+	if l.showX {
+		// Add the X axis
+		xLabels := l.generateXLabels(l.xLabel)
+		newData += strings.Repeat(" ", paddingYLen+1) + strings.Join(xLabels, "") + "\n"
+	}
+	if newData == "" {
+		return data
+	}
 	return newData + "\n"
 }
 
@@ -274,7 +297,7 @@ func resample(input []float64, newSize int) []float64 {
 
 // ensureLen ensures that the string has the specified length by padding it with spaces
 func ensureLen(str string, length int) string {
-	strLen := len([]rune(stripColor(str)))
+	strLen := len([]rune(StripColor(str)))
 	if strLen < length {
 		return strings.Repeat(" ", length-strLen) + str
 	}

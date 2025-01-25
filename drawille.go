@@ -1,4 +1,6 @@
-package main
+package termplt
+
+// Ref: https://github.com/exrook/drawille-go
 
 var pixel_map = [4][2]int{
 	{0x1, 0x8},
@@ -117,7 +119,7 @@ func (c Canvas) Rows(minX, minY, maxX, maxY int) []string {
 		for x := mincol; x < (maxcol + 1); x = x + 1 {
 			char := c.chars[rownum][x]
 			color := c.colors[rownum][x]
-			row += color + string(rune(char+braille_char_offset)) + ResetColor
+			row += color + string(rune(char+braille_char_offset)) + ColorReset
 		}
 		ret = append(ret, row)
 	}
