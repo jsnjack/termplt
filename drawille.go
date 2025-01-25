@@ -137,3 +137,15 @@ func (c Canvas) Frame(minX, minY, maxX, maxY int) string {
 func (c Canvas) String() string {
 	return c.Frame(c.MinX(), c.MinY(), c.MaxX(), c.MaxY())
 }
+
+// Set a text at x,y with color
+func (c *Canvas) SetText(x, y int, text string, color string) {
+	x, y = x/2, y/4
+	if m := c.chars[y]; m == nil {
+		c.chars[y] = make(map[int]int)
+	}
+	for i, char := range text {
+		c.chars[y][x+i] = int(char) - braille_char_offset
+		c.colors[y][x+i] = color
+	}
+}

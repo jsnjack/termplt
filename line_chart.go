@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 
 	"golang.org/x/term"
@@ -81,6 +82,9 @@ func (l LineChart) String() string {
 			l.canvas.Set(nXi, l.height-nYi-1, line.color) // Invert Y axis
 		}
 	}
+	l.canvas.SetText(0, l.height-0-1, "0", WhiteColor)
+	l.canvas.SetText(0, l.height/2-1, fmt.Sprintf("%.1f", maxY/2), WhiteColor)
+	l.canvas.SetText(0, 0, fmt.Sprintf("%.1f", maxY), WhiteColor)
 	return l.canvas.String()
 }
 
