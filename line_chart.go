@@ -1,5 +1,11 @@
 package main
 
+import (
+	"os"
+
+	"golang.org/x/term"
+)
+
 // LineChart represents a line chart
 type LineChart struct {
 	canvas Canvas
@@ -19,6 +25,12 @@ type line struct {
 func (l *LineChart) AddLine(x []float64, y []float64, color string) {
 	line := line{x: x, y: y, color: color}
 	l.lines = append(l.lines, line)
+}
+
+// SetSize sets the size of the line chart
+func (l *LineChart) SetSize(width, height int) {
+	l.width = width
+	l.height = height
 }
 
 func (l *LineChart) findMaxX() float64 {
@@ -72,11 +84,16 @@ func (l LineChart) String() string {
 	return l.canvas.String()
 }
 
-// Make a new line chart
+// Make a new line chart. The default size is auto-detected from the terminal size
 func NewLineChart() LineChart {
+	x, y, error := term.GetSize(int(os.Stdin.Fd()))
+	if error != nil {
+		x = 80
+		y = 80
+	}
 	l := LineChart{
-		width:  80,
-		height: 20,
+		width:  x,
+		height: y,
 	}
 	l.canvas = NewCanvas()
 	return l
