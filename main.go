@@ -13,6 +13,6 @@ func main() {
 	// y := []float64{0, 1, 2, 2, 1, 0, 5, 4, 0, 0}
 	chart.AddLine(x, yy, RedColor)
 	chart.AddLine(x, y, BlueColor)
-	// chart.SetSize(40, 20)
-	fmt.Printf("%s", chart.StringWithAxis("minutes", "percip. mm"))
+	// chart.SetSize(10, 4)
+	fmt.Printf("%s", chart.StringWithAxis(YellowColor+"minutes"+ResetColor, CyanColor+"percip. mm"+ResetColor))
 }

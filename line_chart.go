@@ -112,6 +112,7 @@ func (l *LineChart) generateYLabels(numLines int, yPostfix string) []string {
 }
 
 func (l *LineChart) generateXLabels(xPostfix string) []string {
+	xPostfix = stripColor(xPostfix)
 	maxX := l.findMaxX()
 	minX := l.findMinX()
 	labelCount := l.width/2 + 1
@@ -162,7 +163,13 @@ func (l *LineChart) generateXLabels(xPostfix string) []string {
 }
 
 func populateXLabelsSlice(xLabels []string, pos int, label string) []string {
+	if pos < 0 {
+		return xLabels
+	}
 	runeLabel := []rune(label)
+	if pos+len(runeLabel) > len(xLabels) {
+		return xLabels
+	}
 	for i, r := range runeLabel {
 		xLabels[pos+i] = string(r)
 	}
@@ -171,6 +178,9 @@ func populateXLabelsSlice(xLabels []string, pos int, label string) []string {
 
 func isXLabelsFull(xLabels []string, minLabelLen int) bool {
 	// check if the last minLabelLen are ⎺
+	if len(xLabels) < minLabelLen {
+		return true
+	}
 	for i := len(xLabels) - minLabelLen; i < len(xLabels); i++ {
 		if xLabels[i] != "⎺" {
 			return true
@@ -217,7 +227,7 @@ func (l *LineChart) StringWithAxis(xPostfix, yPostfix string) string {
 		newData += fmt.Sprintf("%s⎹%s\n", yLabels[idx], line)
 	}
 	// Add the X axis
-	paddingLen := len(yLabels[0])
+	paddingLen := len([]rune(stripColor(yLabels[0])))
 	xLabels := l.generateXLabels(xPostfix)
 	newData += strings.Repeat(" ", paddingLen+1) + strings.Join(xLabels, "") + "\n"
 	return newData + "\n"
@@ -264,7 +274,7 @@ func resample(input []float64, newSize int) []float64 {
 
 // ensureLen ensures that the string has the specified length by padding it with spaces
 func ensureLen(str string, length int) string {
-	strLen := len([]rune(str))
+	strLen := len([]rune(stripColor(str)))
 	if strLen < length {
 		return strings.Repeat(" ", length-strLen) + str
 	}
