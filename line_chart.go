@@ -83,7 +83,7 @@ func (l *LineChart) findMinX() float64 {
 	return min
 }
 
-func (l *LineChart) generateYLabels(numLines int) []string {
+func (l *LineChart) generateYLabels(numLines int, yPostfix string) []string {
 	maxY := l.findMaxY()
 	minY := l.findMinY()
 	labels := make([]string, numLines)
@@ -91,10 +91,14 @@ func (l *LineChart) generateYLabels(numLines int) []string {
 	for i := 0; i < numLines; i++ {
 		labels[i] = fmt.Sprintf("%.1f", minY+float64(i)*step)
 	}
+	if yPostfix != "" {
+		labels[len(labels)-1] = yPostfix
+	}
 	maxLen := 0
 	for _, label := range labels {
-		if len(label) > maxLen {
-			maxLen = len(label)
+		labelR := []rune(label)
+		if len(labelR) > maxLen {
+			maxLen = len(labelR)
 		}
 	}
 	for i := 0; i < len(labels); i++ {
@@ -107,43 +111,54 @@ func (l *LineChart) generateYLabels(numLines int) []string {
 	return labels
 }
 
-func (l *LineChart) generateXLabels() []string {
+func (l *LineChart) generateXLabels(xPostfix string) []string {
 	maxX := l.findMaxX()
 	minX := l.findMinX()
-	axisAvaiableChars := make([]string, l.width/2+1)
-	step := (maxX - minX) / float64(l.width/2+1)
-	stepValues := make([]float64, l.width/2+1)
-	for i := 0; i < l.width/2+1; i++ {
+	labelCount := l.width/2 + 1
+	axisAvailableChars := make([]string, labelCount)
+	step := (maxX - minX) / float64(labelCount)
+	stepValues := make([]float64, labelCount)
+	for i := 0; i < labelCount; i++ {
 		stepValues[i] = minX + float64(i)*step
 	}
 	minFreeSpace := 6
-	// populate totalChars with spaces
-	for i := range axisAvaiableChars {
-		axisAvaiableChars[i] = "⎺"
+	for i := range axisAvailableChars {
+		axisAvailableChars[i] = "⎺"
 	}
 	lastLabel := fmt.Sprintf("%.1f", maxX)
-	// iterate over runes in the first label and assign them to totalChars
 	for {
-		if isXLabelsFull(axisAvaiableChars, len(lastLabel)+minFreeSpace) {
+		if isXLabelsFull(axisAvailableChars, len(lastLabel)+minFreeSpace) {
 			break
 		}
-		// find the first free space by iterating from the end and finding the first space not equat to "⎺"
 		pos := 0
-		for i := len(axisAvaiableChars) - 1; i >= 0; i-- {
-			if axisAvaiableChars[i] != "⎺" {
+		for i := len(axisAvailableChars) - 1; i >= 0; i-- {
+			if axisAvailableChars[i] != "⎺" {
 				pos = i
 				break
 			}
 		}
 		if pos != 0 {
-			pos = pos + minFreeSpace
+			pos += minFreeSpace
 		}
-		if pos >= len(axisAvaiableChars) {
+		if pos >= len(axisAvailableChars) {
 			break
 		}
-		axisAvaiableChars = populateXLabelsSlice(axisAvaiableChars, pos, fmt.Sprintf("%.1f", stepValues[pos]))
+		axisAvailableChars = populateXLabelsSlice(axisAvailableChars, pos, fmt.Sprintf("%.1f", stepValues[pos]))
 	}
-	return axisAvaiableChars
+	if xPostfix != "" {
+		xPostfixLen := len([]rune(xPostfix))
+		populateXLabelsSlice(axisAvailableChars, len(axisAvailableChars)-xPostfixLen, xPostfix)
+		// make sure we have connecting ⎺ before the postfix
+		for i := len(axisAvailableChars) - xPostfixLen - 1; i >= 0; i-- {
+			if axisAvailableChars[i] == "⎺" {
+				break
+			} else {
+				axisAvailableChars[i] = "⎺"
+			}
+		}
+	}
+
+	return axisAvailableChars
 }
 
 func populateXLabelsSlice(xLabels []string, pos int, label string) []string {
@@ -188,26 +203,22 @@ func (l LineChart) String() string {
 			l.canvas.Set(nXi, l.height-nYi-1, line.color) // Invert Y axis
 		}
 	}
-	// l.canvas.SetText(0, l.height-0-1, "0", WhiteColor)
-	// l.canvas.SetText(0, l.height/2-1, fmt.Sprintf("%.1f", maxY/2), WhiteColor)
-	// l.canvas.SetText(0, 0, fmt.Sprintf("%.1f", maxY), WhiteColor)
 	return l.canvas.String()
 }
 
 // StringWithAxis returns the string representation of the line chart with axis labels
-func (l *LineChart) StringWithAxis() string {
+func (l *LineChart) StringWithAxis(xPostfix, yPostfix string) string {
 	data := l.String()
 	splitted := strings.Split(data, "\n")
 	splitted = splitted[:len(splitted)-1] // Remove the last empty line
 	newData := ""
-	yLabels := l.generateYLabels(len(splitted))
+	yLabels := l.generateYLabels(len(splitted), yPostfix)
 	for idx, line := range splitted {
 		newData += fmt.Sprintf("%s⎹%s\n", yLabels[idx], line)
 	}
 	// Add the X axis
 	paddingLen := len(yLabels[0])
-	// newData += strings.Repeat(" ", paddingLen+1) + strings.Repeat("⎺", l.width/2+1) + "\n"
-	xLabels := l.generateXLabels()
+	xLabels := l.generateXLabels(xPostfix)
 	newData += strings.Repeat(" ", paddingLen+1) + strings.Join(xLabels, "") + "\n"
 	return newData + "\n"
 }
@@ -253,8 +264,9 @@ func resample(input []float64, newSize int) []float64 {
 
 // ensureLen ensures that the string has the specified length by padding it with spaces
 func ensureLen(str string, length int) string {
-	if len(str) < length {
-		return strings.Repeat(" ", length-len(str)) + str
+	strLen := len([]rune(str))
+	if strLen < length {
+		return strings.Repeat(" ", length-strLen) + str
 	}
 	return str
 }

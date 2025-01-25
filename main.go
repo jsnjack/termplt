@@ -14,5 +14,5 @@ func main() {
 	chart.AddLine(x, yy, RedColor)
 	chart.AddLine(x, y, BlueColor)
 	// chart.SetSize(40, 20)
-	fmt.Printf("%s", chart.StringWithAxis())
+	fmt.Printf("%s", chart.StringWithAxis("minutes", "percip. mm"))
 }
