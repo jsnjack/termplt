@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"golang.org/x/term"
 )
@@ -14,8 +15,13 @@ type LineChart struct {
 	width  int
 	height int
 	lines  []line
-	showX  bool
-	xLabel string
+
+	// x specific settings
+	showX            bool
+	xLabel           string
+	xLabelTimeFormat string
+
+	// y specific settings
 	showY  bool
 	yLabel string
 }
@@ -42,6 +48,14 @@ func (l *LineChart) SetSize(width, height int) {
 func (l *LineChart) SetXLabel(label string) {
 	l.xLabel = label
 	l.showX = true
+}
+
+func (l *LineChart) SetXLabelAsTime(label string, format string) {
+	l.SetXLabel(label)
+	l.xLabelTimeFormat = format
+	if l.xLabelTimeFormat == "" {
+		l.xLabelTimeFormat = "15:04"
+	}
 }
 
 func (l *LineChart) SetYLabel(label string) {
@@ -125,6 +139,13 @@ func (l *LineChart) generateYLabels(numLines int, yPostfix string) []string {
 	return labels
 }
 
+func (l *LineChart) generateXLabel(val float64) string {
+	if l.xLabelTimeFormat != "" {
+		return fmt.Sprintf("%s", time.Unix(int64(val), 0).Format(l.xLabelTimeFormat))
+	}
+	return fmt.Sprintf("%.1f", val)
+}
+
 func (l *LineChart) generateXLabels(xPostfix string) []string {
 	xPostfix = StripColor(xPostfix)
 	maxX := l.findMaxX()
@@ -140,7 +161,7 @@ func (l *LineChart) generateXLabels(xPostfix string) []string {
 	for i := range axisAvailableChars {
 		axisAvailableChars[i] = "⎺"
 	}
-	lastLabel := fmt.Sprintf("%.1f", maxX)
+	lastLabel := l.generateXLabel(maxX)
 	for {
 		if isXLabelsFull(axisAvailableChars, len(lastLabel)+minFreeSpace) {
 			break
@@ -158,7 +179,7 @@ func (l *LineChart) generateXLabels(xPostfix string) []string {
 		if pos >= len(axisAvailableChars) {
 			break
 		}
-		axisAvailableChars = populateXLabelsSlice(axisAvailableChars, pos, fmt.Sprintf("%.1f", stepValues[pos]))
+		axisAvailableChars = populateXLabelsSlice(axisAvailableChars, pos, l.generateXLabel(stepValues[pos]))
 	}
 	if xPostfix != "" {
 		xPostfixLen := len([]rune(xPostfix))
@@ -212,7 +233,6 @@ func (l LineChart) string() string {
 		l.lines[i].x = resample(line.x, l.width)
 		l.lines[i].y = resample(line.y, l.width)
 	}
-
 	// Find the maximum values for X and Y to scale the chart
 	maxX := l.findMaxX()
 	maxY := l.findMaxY()
@@ -220,14 +240,13 @@ func (l LineChart) string() string {
 	// Draw the lines
 	for _, line := range l.lines {
 		for i := 0; i < len(line.x); i++ {
-			// Normalize the coordinates to fit the canvas
 			nXi := 0
 			nYi := 0
 			if maxX != 0 {
-				nXi = int(line.x[i] * float64(l.width) / maxX)
+				nXi = int((line.x[i] - l.findMinX()) / (maxX - l.findMinX()) * float64(l.width))
 			}
 			if maxY != 0 {
-				nYi = int(line.y[i] * float64(l.height) / maxY)
+				nYi = int((line.y[i] - l.findMinY()) / (maxY - l.findMinY()) * float64(l.height))
 			}
 			// Invert Y axis to match the mathematical convention
 			l.canvas.Set(nXi, l.height-nYi-1, line.color) // Invert Y axis
