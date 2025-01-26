@@ -1,4 +1,4 @@
-module termplt
+module github.com/jsnjack/termplt
 
 go 1.23.4
 
