@@ -221,8 +221,14 @@ func (l LineChart) string() string {
 	for _, line := range l.lines {
 		for i := 0; i < len(line.x); i++ {
 			// Normalize the coordinates to fit the canvas
-			nXi := int(line.x[i] * float64(l.width) / maxX)
-			nYi := int(line.y[i] * float64(l.height) / maxY)
+			nXi := 0
+			nYi := 0
+			if maxX != 0 {
+				nXi = int(line.x[i] * float64(l.width) / maxX)
+			}
+			if maxY != 0 {
+				nYi = int(line.y[i] * float64(l.height) / maxY)
+			}
 			// Invert Y axis to match the mathematical convention
 			l.canvas.Set(nXi, l.height-nYi-1, line.color) // Invert Y axis
 		}
