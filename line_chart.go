@@ -9,6 +9,9 @@ import (
 	"golang.org/x/term"
 )
 
+const verticalAxisChar = "│"
+const horizontalAxisChar = "⎺"
+
 // LineChart represents a line chart
 type LineChart struct {
 	canvas Canvas
@@ -172,7 +175,7 @@ func (l *LineChart) generateXLabels(xPostfix string) []string {
 	}
 	minFreeSpace := 6
 	for i := range axisAvailableChars {
-		axisAvailableChars[i] = "⎺"
+		axisAvailableChars[i] = horizontalAxisChar
 	}
 	lastLabel := l.generateXLabel(maxX)
 	for {
@@ -181,7 +184,7 @@ func (l *LineChart) generateXLabels(xPostfix string) []string {
 		}
 		pos := 0
 		for i := len(axisAvailableChars) - 1; i >= 0; i-- {
-			if axisAvailableChars[i] != "⎺" {
+			if axisAvailableChars[i] != horizontalAxisChar {
 				pos = i
 				break
 			}
@@ -199,10 +202,10 @@ func (l *LineChart) generateXLabels(xPostfix string) []string {
 		populateXLabelsSlice(axisAvailableChars, len(axisAvailableChars)-xPostfixLen, xPostfix)
 		// make sure we have connecting ⎺ before the postfix
 		for i := len(axisAvailableChars) - xPostfixLen - 1; i >= 0; i-- {
-			if axisAvailableChars[i] == "⎺" {
+			if axisAvailableChars[i] == horizontalAxisChar {
 				break
 			} else {
-				axisAvailableChars[i] = "⎺"
+				axisAvailableChars[i] = horizontalAxisChar
 			}
 		}
 	}
@@ -230,7 +233,7 @@ func isXLabelsFull(xLabels []string, minLabelLen int) bool {
 		return true
 	}
 	for i := len(xLabels) - minLabelLen; i < len(xLabels); i++ {
-		if xLabels[i] != "⎺" {
+		if xLabels[i] != horizontalAxisChar {
 			return true
 		}
 	}
@@ -278,7 +281,7 @@ func (l *LineChart) String() string {
 		splitted = splitted[:len(splitted)-1] // Remove the last empty line
 		yLabels := l.generateYLabels(len(splitted), l.yLabel)
 		for idx, line := range splitted {
-			newData += fmt.Sprintf("%s⎹%s\n", yLabels[idx], line)
+			newData += fmt.Sprintf("%s%s%s\n", yLabels[idx], verticalAxisChar, line)
 		}
 		paddingYLen = len([]rune(StripColor(yLabels[0])))
 
