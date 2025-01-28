@@ -134,21 +134,23 @@ func (l *LineChart) generateYLabels(numLines int, yPostfix string) []string {
 
 	// Deduplicate the labels
 	seen := make(map[string]bool)
-	lastSeenLabel := ""
 	for i := 0; i < len(labels); i++ {
 		if seen[labels[i]] {
 			labels[i] = ""
 		} else {
 			seen[labels[i]] = true
-			lastSeenLabel = labels[i]
 		}
 	}
 
 	// Add the postfix as the last label, if specified
 	// The real last label is shifted to make space for the postfix
 	if yPostfix != "" {
-		labels[len(labels)-1] = yPostfix
-		labels[len(labels)-2] = lastSeenLabel
+		lastLabel := labels[len(labels)-1]
+		if lastLabel != "" {
+			labels[len(labels)-1] = fmt.Sprintf("(%s) %s", yPostfix, labels[len(labels)-1])
+		} else {
+			labels[len(labels)-1] = fmt.Sprintf("(%s)", yPostfix)
+		}
 	}
 
 	// Find the maximum length of the labels
@@ -215,8 +217,9 @@ func (l *LineChart) generateXLabels(xPostfix string) []string {
 		axisAvailableChars = populateXLabelsSlice(axisAvailableChars, pos, l.generateXLabel(stepValues[pos]))
 	}
 	if xPostfix != "" {
-		xPostfixLen := len([]rune(xPostfix))
-		populateXLabelsSlice(axisAvailableChars, len(axisAvailableChars)-xPostfixLen, xPostfix)
+		XPostfix := fmt.Sprintf("(%s)", xPostfix)
+		xPostfixLen := len([]rune(XPostfix))
+		populateXLabelsSlice(axisAvailableChars, len(axisAvailableChars)-xPostfixLen, XPostfix)
 		// make sure we have connecting ⎺ before the postfix
 		for i := len(axisAvailableChars) - xPostfixLen - 1; i >= 0; i-- {
 			if axisAvailableChars[i] == horizontalAxisChar {
