@@ -37,4 +37,14 @@ func main() {
 	chart.SetXLabelAsTime("time", "15:04")
 	chart.SetYLabel("rain, mm")
 	fmt.Println(chart.String())
+
+	fmt.Println("Line Chart, no duplicated Y values")
+	chart = termplt.NewLineChart()
+	chart.AddLine(
+		[]float64{0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60},
+		[]float64{0, 0.1, 0.1, 0.2, 0.3, 0, 0, 0, 0, 0, 0.1, 0, 0, 0},
+		termplt.ColorBlue,
+	)
+	chart.SetYLabel("")
+	fmt.Println(chart.String())
 }

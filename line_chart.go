@@ -129,9 +129,22 @@ func (l *LineChart) generateYLabels(numLines int, yPostfix string) []string {
 			maxLen = len(labelR)
 		}
 	}
+
+	// Deduplicate the labels
+	seen := make(map[string]bool)
+	for i := 0; i < len(labels); i++ {
+		if seen[labels[i]] {
+			labels[i] = ""
+		} else {
+			seen[labels[i]] = true
+		}
+	}
+
+	// Ensure all labels have the same length
 	for i := 0; i < len(labels); i++ {
 		labels[i] = ensureLen(labels[i], maxLen)
 	}
+
 	// Reverse the order of the labels
 	for i, j := 0, len(labels)-1; i < j; i, j = i+1, j-1 {
 		labels[i], labels[j] = labels[j], labels[i]
