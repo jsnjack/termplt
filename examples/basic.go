@@ -45,6 +45,6 @@ func main() {
 		[]float64{0, 0.1, 0.1, 0.2, 0.3, 0, 0, 0, 0, 0, 0.1, 0, 0, 0},
 		termplt.ColorBlue,
 	)
-	chart.SetYLabel("")
+	chart.SetYLabel("rain, mm")
 	fmt.Println(chart.String())
 }

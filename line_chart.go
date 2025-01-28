@@ -131,24 +131,32 @@ func (l *LineChart) generateYLabels(numLines int, yPostfix string) []string {
 	for i := 0; i < numLines; i++ {
 		labels[i] = fmt.Sprintf("%.1f", minY+float64(i)*step)
 	}
-	if yPostfix != "" {
-		labels[len(labels)-1] = yPostfix
-	}
-	maxLen := 0
-	for _, label := range labels {
-		labelR := []rune(label)
-		if len(labelR) > maxLen {
-			maxLen = len(labelR)
-		}
-	}
 
 	// Deduplicate the labels
 	seen := make(map[string]bool)
+	lastSeenLabel := ""
 	for i := 0; i < len(labels); i++ {
 		if seen[labels[i]] {
 			labels[i] = ""
 		} else {
 			seen[labels[i]] = true
+			lastSeenLabel = labels[i]
+		}
+	}
+
+	// Add the postfix as the last label, if specified
+	// The real last label is shifted to make space for the postfix
+	if yPostfix != "" {
+		labels[len(labels)-1] = yPostfix
+		labels[len(labels)-2] = lastSeenLabel
+	}
+
+	// Find the maximum length of the labels
+	maxLen := 0
+	for _, label := range labels {
+		labelR := []rune(label)
+		if len(labelR) > maxLen {
+			maxLen = len(labelR)
 		}
 	}
 
