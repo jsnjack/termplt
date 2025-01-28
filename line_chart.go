@@ -48,11 +48,14 @@ func (l *LineChart) SetSize(width, height int) {
 	l.height = height
 }
 
+// SetXLabel draws the X axis with the specified label
 func (l *LineChart) SetXLabel(label string) {
 	l.xLabel = label
 	l.showX = true
 }
 
+// SetXLabelAsTime draws the X axis with the specified label. It assumes that
+// the X values are timestamps and formats them according to the specified format
 func (l *LineChart) SetXLabelAsTime(label string, format string) {
 	l.SetXLabel(label)
 	l.xLabelTimeFormat = format
@@ -61,6 +64,12 @@ func (l *LineChart) SetXLabelAsTime(label string, format string) {
 	}
 }
 
+// SetText sets the text at the specified position
+func (l *LineChart) SetText(x, y int, text string, color string) {
+	l.canvas.SetText(x, y, text, color)
+}
+
+// SetYLabel draws the Y axis with the specified label
 func (l *LineChart) SetYLabel(label string) {
 	l.yLabel = label
 	l.showY = true
@@ -240,7 +249,6 @@ func isXLabelsFull(xLabels []string, minLabelLen int) bool {
 	return false
 }
 
-// String returns the string representation of the line chart
 func (l LineChart) string() string {
 	l.canvas.Clear()
 
